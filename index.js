@@ -6,6 +6,10 @@ const client = require("./src/clientStart.js")
 // const { List , Client , LocalAuth , MessageMedia , Buttons, Reaction } = require("whatsapp-web.js");
 const chalk = require("chalk");
 
+const { 
+    no_prefix_commands,
+    prefix_commands 
+} = require('./reactive_messages.js')
 
 const prefix = '?'
 
@@ -13,8 +17,12 @@ const prefix = '?'
 const welcome_msg = () => {
     const text = `
         bem-vindo ao grupo
-        Me chame de alves
-        automações para whatsapp me chame pv
+        Me chame de _alves_
+        Sou o criador desse chatbot ;)
+
+        _Em desenvolvimento_
+        
+        
     `
 
     return text
@@ -60,29 +68,51 @@ client.on("group_join", async (group_update) => {
     }
 })
 
-client.on("group_leave", async (group_update, msg) => {
+client.on("group_leave", async (group_update) => {
     const user = await group_update.getContact()
     const quit = await client.getContactById(group_update.recipientIds[0])
 
+    const chat = await group_update.getChat()
+        console.log(chat.isGroup)
+        
     console.log(`${chalk.redBright(`${quit.pushname}`)} removido por ${chalk.yellow(`${user.pushname}`)}.`)
-    console.log(group_update)
+    // console.log(group_update)
+
+    chat.sendMessage(
+        `Usário removido. ${
+            quit.pushname == undefined 
+                ? "" 
+                : "nome: " + quit.pushname
+        }`
+    )
 
 })
 
 client.on("message", async (msg) => {
     let msgLower = msg.body.toLowerCase().trim()
+    let msg_array = msgLower.split(" ")
+    let user = await msg.getContact()
+    let name = user.pushname
 
-    user = await msg.getContact()
-    if(msg.body == prefix + 'ping'){
-        msg.reply('pong')
-        console.log(`ping... ${chalk.yellow(`${user.pushname}`)}`)    
+
+    // console.log(user)
+    if(Object.keys(no_prefix_commands).includes(msgLower)){
+        client.sendMessage(msg.from, no_prefix_commands[msgLower])
+        console.log(`key in prefix... ${chalk.yellow(name)}`)
+        return
     }
 
-    if(msgLower == "gay acima"){
-        client.sendMessage(msg.from, "gay abaixo")
+
+    if(Object.keys(prefix_commands).includes(msgLower.substring(1))){
+        command_msg = no_prefix_commands[msgLower.substring(1)]
+        
+        msg.reply(no_prefix_commands[msgLower.substring(1)])
+        console.log(`${command_msg}... ${chalk.yellow(`${name}`)}`)    
+        return
     }
 
     if(msgLower.includes("alves")){
-        msg.reply("oie")
+        // client.sendMessage(msg.from, "ALVES O #(@*$@#")
+        return
     }
 })
